@@ -132,7 +132,7 @@ weight = 100
  ### 5.3 SSD(固态硬盘, 闪存, Flush Memory)
  特点：　<br />
         1. 随机读写性能高于机械磁盘，　支持更对并发操作，`每次写入前会对写入的单元进行擦除操作==>更易损坏`　<br />
-        2. 直接使用SATA接口来替换传统磁盘，但传统借口SATA2(3Gbps)将会影响SATA3(6Gbps)的效率 <br />
+        2. 直接使用SATA接口来替换传统磁盘，但传统接口SATA2(3Gbps)将会影响SATA3(6Gbps)的效率 <br />
         3. SATA接口的SSD可以用来做RAID.　<br />
   
   ### 5.4 PCI-E　SSD　(一种Fusion-IO是其一种硬件实现)
