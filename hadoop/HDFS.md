@@ -54,7 +54,7 @@ in-->
     locatedBlocks(所有块)|lastLocatedBlock(最后一个块)-->
       blocks(ArrayList, 保存该文件的每个块的信息， 其大小为块的个数)-->  
         block序号-->
-          poolId(块ip地址，存在于一个名为`value`的字符数组中)|block(offset等。见下一级信息)-->
+          poolId(块ip地址，存在于一个名为`value`的字符数组中; DN的ip地址、hostname、机架、DN的UUID等)|block(offset等。见下一级信息)-->
               block_id(块ID)|numBates(块大小)]
 ```
 综上, NameNode返回的 `Block Info` 都封装在fs.open()方法返回的`FSDataInputStream流对象`里， 该对象对文件的一个块可从网络拓扑最近的`DataNode` 反复执行read()方法;
@@ -102,7 +102,7 @@ in-->
  `DistributedFileSystem提供`提供`hsync()`方法， 将数据写入`硬盘`， 并对所有reader可见。但成本较高。
 
  # 第二部分 Hadoop I/O
- ## 1. Hadoop 如何保证文件一致性(损坏检测)
+ ## 1. Hadoop 中的文件一致性
 ** 注意: 每个checksum=32bit=4字节 **
 
 | 选项 | 介绍 |
@@ -111,3 +111,18 @@ in-->
 | 注意  |   校验码同样是写到磁盘，也存在错误可能，只是概率极小。 |
 | 在Hadoop上的应用 |  Hadoop使用 `ChecksunFileSystem`(实现了CRC-32); <br />HDFS使用`CRC-32C`（CRC-32的进阶高效版）|
 | dfs.bytes-per-checksum | 设置每隔多少字节，计算一次checksum. 默认:`512` |
+
+## 2. Hadoop 如何保证文件一致性(损坏检测)
+* HDFS会在文件存储时计算校验和，并在文件读取时检验校验和；
+
+* 客户端写入文件或者从DataNode上拷贝文件时，DataNode Pipeline的最后一个节点符合检验校验和，发现不一致时，将抛出`ChecksumException`, 这时编程人员应当重试写入操作；
+
+* 客户端读取文件检测到错误，将发生错误的数据块报告给NN, NN将此数据块标记， 此时抛出ChecksumException时。之后此数据块的一个复本将复制一个数据块到一台DN,并删除发生错误的数据块；
+
+* 每个DN会在后台维护一个`DataBlockScanner`, 定时检查此DN上的数据块。
+注: 若读取时不需要检查校验和，只需fs.setVerifyChechsum(false); 使用cp、copyToLocal等命令时也可指定禁用`checksum`(-ignoreCrc).
+注: hadoop fs -checksum /file_path   // 查看文件校验和
+
+## 3. 压缩
+Hadoop支持的压缩算法分类
+| 压缩算法 |

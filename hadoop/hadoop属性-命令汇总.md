@@ -21,3 +21,4 @@
 | hadoop fs -ls /path | -R, 地柜展示目录 | 展示目录及文件信息 |
 | hadoop distcp  [-overwrite 、 -update、-m]  path1 path2 | path1: 原文件或目录； path2: 目标文件或目录； -overwrite ；-update | -overwrite 强制覆盖原文件；  -update更新发生变化的文件; 该过程需要`MapReduce`的支持，通过没有reduce过程的`MR`来完成复制.`用于复制大文件`; -m指定map的数量(该数量适当增大可利于块的均匀分布)|
 | hadoop fs -cp path1 path2 | |用于复制较小文件|
+| hadoop fs -checksum /file_path ; <br /> hdfs dfs -checksum /file_path | | 查看文件校验和 |
