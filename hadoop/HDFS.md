@@ -160,6 +160,93 @@ default算法将文件压缩成多个压缩块，块与块之间无任何标记�
 
 4.3 Hadoop的实现 ---- <b> org.apache.hadoop.io.Writable接口 </b>
 
+4.4 其他序列化的实现 ---- AVRO, Protobuf
 
+## 5. 基于文件的数据结构
+### 5.1 SequenceFile
+5.1.1 何为SequenceFile ? <br />
+Hadoop为存储[key, value]形式的二进制文件而设计的一种数据结构
 
-4.4 其他序列化的实现 ---- AVRO
+5.1.2 SequenceFile的特点 ?
+* 可切片,作为MR的输入分片;
+* 支持压缩 (CompressionType.NONE, RECORD, BLOCK);
+* 每一行都是一个key value对;
+* 可以设置同步点 (sync point), 支持从指定position的下一个`同步点`读取;
+* 小文件的容器, 提供HDFS和MR的效率;
+* Key和Value可以是任意类型Writable或者是自定义Writable.
+
+5.1.3 CompressionType
+
+|CompressionType | 字段组成|
+|:-----|:-----:|:-----:|:-----:|:-----:|
+|NONE| HEADER|RECORD|RECORD|SYNC|RECORD|RECORD|SYNC|...|
+|RECORD| 同上 |
+|BLOCK| HEADER | SYNC|BLOCK |SYNC|BLOCK|...|
+
+* CompressionType为`NONE`, `RECODE字段`详解:
+|record_length|key_length|key|value|
+
+* CompressionType为`RECORD`, `RECORD字段`详解:
+|record_length | key_length | key | compressed_value |
+
+* CompressionType为`BLOCK`, `BLOCK字段`详解:
+|num_of_records| compressed_key_length| compressed_keys |compressed_value_length | compressed_values |
+
+注: 前两者的key未压缩, 后者的key被压缩
+
+5.1.4 创建SequenceFile.  <br />
+通过`SequenceFile.createWriter()`获得一个`writer`, 再调用其`append()`方法创建文件或在文件后追加.
+
+usage:
+```
+public static void createSeqFile(String filePath, Configuration conf, FileSystem fs) {
+        Path path = new Path(filePath);
+        SequenceFile.Writer writer = null;
+        IntWritable key = new IntWritable();
+        Text value = new Text();
+        final String[] DATA = {"hello", "you are the apple of my eye", "风味酸牛奶", "Intellij IDEA Ultimate Edition", "Flavored Yoghurt"};
+        try {
+            Class clazz = Class.forName("org.apache.hadoop.io.compress.BZip2Codec");
+            CompressionCodec codec = (CompressionCodec) ReflectionUtils.newInstance(clazz, conf);
+            writer = SequenceFile.createWriter(fs, conf, path, key.getClass(), value.getClass(), SequenceFile.CompressionType.BLOCK, codec);
+            for (int i = 0; i < DATA.length; i ++) {
+                key.set(i);
+                value.set(DATA[i]);
+                writer.append(key, value);
+            }
+            writer.hflush();
+            System.out.println("done!");
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            IOUtils.closeStream(writer);
+        }
+    }
+```
+
+5.1.5 读取SequenceFile
+
+`获取SequenceFile.Reader的对象, 调用其`next()方法`, 将要获取的key和value作为next()的参数,反复调用next()方法. ** 若读取成功返回true, 读到文件尾返回false ** .<br />
+usage:
+```
+public static void readSeqFile(String filePath, Configuration conf, FileSystem fs) {
+        Path path = new Path(filePath);
+        SequenceFile.Reader reader = null;
+        try {
+            reader = new SequenceFile.Reader(fs, path, conf);
+            Writable key = (Writable) ReflectionUtils.newInstance(reader.getKeyClass(), conf);
+            Writable value = (Writable) ReflectionUtils.newInstance(reader.getValueClass(), conf);
+            while (reader.next(key, value)) {
+                System.out.printf("%s\t%s\n", key, value);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            IOUtils.closeStream(reader);
+        }
+    }
+```
+
+### 5.2 MapFile
+5.2.1 何为MapFile ?
+5.2.2 MapFile的特点
