@@ -3,3 +3,41 @@
 ## gedit
 * 配置gedit加载时自动识别文件编码方式，默认为utf-8 <br/>
 `$ gsettings set org.gnome.gedit.preferences.encodings candidate-encodings "['GB18030', 'UTF-8', 'CURRENT', 'ISO-8859-15', 'UTF-16']"`
+
+## cut
+作用:按列提取文本  <br />
+语法:`$ cut -f field_list file_name`  <br />
+-d: 指定分隔符 `-d ' '`  <br />
+-f: 按字段提取. 字段列表, 通常用数字代替字段序号.通常有4种方式: a. `-f num1,num2`; b. `-f num1-num2`; c. `-num1`; d. `num1-`  <br />
+-c: 按字符提取. 通常有4种方式: a. `-c num1,num2`; b. `-c num1-num2`; c. `-num1`; d. `num1-`  <br />
+-b: 按字节提取. 通常有4种方式: a. `-b num1,num2`; b. `-b num1-num2`; c. `-num1`; d. `num1-` <br />
+注1: -c和-b提取多字段时应指定输出分隔符 --output-delimiter '分隔符'. <br />
+注2: ** 采用方式a时, num1,num2之间无空格.<br /> **
+注3: `-num1`表示[1, num1], `num1-`表示[num1, 正无穷]
+
+usage:
+* `$ cut -f 1-3 -d ' ' test.txt`
+```
+Id Name Mark
+1 Sarath 45
+2 Alex 49
+3 Anu 45
+```
+
+* `$cut -f 1,3 -d ' ' test.txt`
+```
+Id Mark
+1 45
+2 49
+3 45
+```
+
+* `$ cut test -c1-3,5-9   --output-delimiter ','`
+```
+Id ,ame M
+1 S,rath
+2 A,ex 49
+3 A,u 45
+```
+
+## diff
