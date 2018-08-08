@@ -1,10 +1,10 @@
 # 小工具
 
-## gedit
+## 1. gedit
 * 配置gedit加载时自动识别文件编码方式，默认为utf-8 <br/>
 `$ gsettings set org.gnome.gedit.preferences.encodings candidate-encodings "['GB18030', 'UTF-8', 'CURRENT', 'ISO-8859-15', 'UTF-16']"`
 
-## cut
+## 2. cut
 作用:按列提取文本  <br />
 语法:`$ cut -f field_list file_name`  <br />
 -d: 指定分隔符 `-d ' '`  <br />
@@ -40,4 +40,14 @@ Id ,ame M
 3 A,u 45
 ```
 
-## diff
+## 3. diff
+作用: 比较两个文件的不同(支持目录比较), line by line. <br />
+语法: `diff [option] file1 file2` <br />
+usage: `$ diff text1 text2` <br />
+注: 末尾加`-y`参数, 表示并列展示文件的不同之处. `$ diff test1 test2 -y`  <br />
+输出说明:
+```
+"|"表示前后2个文件内容有不同
+"<"表示后面文件比前面文件少了1行内容
+">"表示后面文件比前面文件多了1行内容
+```
