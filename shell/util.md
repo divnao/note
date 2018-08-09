@@ -51,3 +51,10 @@ usage: `$ diff text1 text2` <br />
 "<"表示后面文件比前面文件少了1行内容
 ">"表示后面文件比前面文件多了1行内容
 ```
+
+## 4. Linux内存检查
+top
+free
+vmstat
+dmidecode
+`/proc/meminfo 文件`

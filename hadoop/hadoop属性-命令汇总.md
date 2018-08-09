@@ -40,7 +40,13 @@
 | mapreduce.map.output.compress.codec | 压缩格式的完整类名 | map输出中间结果是使用压缩格式 。也可以:  conf.setClass(Job.MAP_OUTPUT_COMPRESS_CLASS, 完整类名)|
 | mapreduce.jobhistory.done-dir | 目录 | mapreduce作业历史记录文件(json)的存放目录(历史记录文件默认保存一周) |
 | mapreduce.task.files.preserve.failedtasks| true, false | 保存失败任务的中间结果文件|
-|mapreduce.task.files.preserve.filepattern|true, false | 保存成功任务的中间结果文件 |
+| mapreduce.task.files.preserve.filepattern|true, false | 保存成功任务的中间结果文件 |
+| mapreduce.client.submit.file.replication | int | 客户端提交的mapreduce jar等文件的副本数, 默认为10 |
+| mapreduce.job.reduces | int | reduce 任务个数. 也可通过作业的setNumReduceTasks()来设置 |
+| mapreduce.map.memory.mb | int(MB) | 单个map任务分配的内存数(默认1G) |
+| mapreduce.reduce.memory.mb | int(MB) | 单个reduce任务分配的内存数(默认1G) |
+| mapreduce.mpa.cpu.vcores | int | 单个map任务分配的虚拟内核数(默认为1) |
+| mapreduce.reduce.cpu.vcores | int | 单个reduce任务分配的虚拟内核数(默认为1) |
 
 
 
