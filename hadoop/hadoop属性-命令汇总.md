@@ -47,6 +47,17 @@
 | mapreduce.reduce.memory.mb | int(MB) | 单个reduce任务分配的内存数(默认1G) |
 | mapreduce.mpa.cpu.vcores | int | 单个map任务分配的虚拟内核数(默认为1) |
 | mapreduce.reduce.cpu.vcores | int | 单个reduce任务分配的虚拟内核数(默认为1) |
+| mapreduce.task.timeout | int (毫秒) | 作业超时时间, 默认600000(10分钟). 作业超过10分钟未向AppMaster发送进度信息, 该作业的jvm进程将被kill; 设置为0表示关闭超时判断,即使作业长时间挂起也不会被kill |
+| mapreduce.map.maxattempts | int | map任务失败的最大重试次数(被kill的任务不计), 默认为4, 任何map任务失败超过4次, 则整个作业失败 |
+| mapreduce.reduce.maxattempts | int  | reduce任务的最大失败次数(被kill的任务不计), 默认为4, 任何reduce任务失败超过4次,则整个作业失败 |
+| mapreduce.map.failures.maxpercent | | 允许失败的map任务百分比, 不超过这个值将不会触发作业失败 |
+| mapreduce.reduce.failures.maxpercent | | 允许失败的reduce任务百分比, 不超过这个值将不会触发作业失败 |
+| yarn.resourcemanager.am.max-attempts | int | Yarn层面限制单个应用的MRAppMaster的重试次数, 默认为2, 超过这个次数则作业失败 |
+| mapreduce.am.max-attempts | int | MRAppMaster作业失败重试次数, 默认为2, 超过这个次数则作业失败. 此属性的`增加`受到上一个属性的`限制`, 要增加的话应该先改增加上一个属性 |
+| yarn.app.mapreduce.am.job.recovery.enable | true, false | RM重启失败的MRAppMaster时, 是否通过作业历史来恢复作业,使作业不必重头开始. 默认true |
+| mapreduce.job.maxtaskfailures.per.tracker | int | NM上运行失败的任务的次数阈值. 超过此值则NM被MRAppMaster拉黑, 默认为3 |
+| mapreduce.task.io.sort.mb | int | 每个map的环形内存缓冲区大小,用于存储map的输出, 默认100M |
+| mapreduce.map.sort.spill.percent | float | 环形内存缓冲区阈值, 一旦达到, map的输出内存将溢出到文件(磁盘), 默认0.8(或80%) |
 
 
 
@@ -55,6 +66,8 @@
 | :------:|:------: | :------: |
 | yarn.resourcemanager.max-completed-applicatons | int | yarn在内存中保存的已完成作业的数量(无关作业历史记录) |
 | yarn.log-aggregation-enable | false(默认), true | Yarn日志聚合服务, 将日志归档于HDFS |
+| yarn.resourcemanager.nm.liveness-monitor.expiry-interval-ms | int(毫秒) | NM超过此时间未向RM发送心跳, 将被RM移出, 默认600000(10分钟) |
+
 
 ## 指定配置文件启动
 `$ hadoop fs -conf /conf_file_path`

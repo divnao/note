@@ -21,5 +21,30 @@ JobClient.runJob(conf2);
 3. `Apache Oozie`, 运行工作流的系统,该工作流由多个相互依赖(通常能处理上千作业流)的作业组成. 存储和运行不同类型的Hadoop作业(Hive, MR, Pig等); 具体定制工作流参考: <<Hadoop权威指南>> page179.
 
 ## 3. MR工作机制
-1. 资源:
+### 3.1. 资源分配:
  默认情况下, 每个map会分到1G内存和1个虚拟内核用来处理Task.
+
+### 3.2 MR的工作机制...
+
+### 3.3 作业失败
+1. 应用失败. <br />
+  MR的程序编码, 资源加载存在异常,错误; 应用的MRAppMaster管理该作业的黑名单, 任务失败超过3次的NM将减少任务分配. 注意: 并不是RM管理该黑名单.
+
+2. MRAppMaster作业失败  <br />
+MRAppMaster失败后, RM在新的Container中新建一个master实例, Task在向失败的master请求无果后,会自动向RM请求新的master地址;
+
+3. NodeManager失败  <br />
+NM超过10分钟未向RM发送心跳信息, 则RM会将其从自己的节点池中移出.并启用新的容器, 按照上述恢复方法恢复容器中的master(可能存在)或任务.
+
+4. ResourceManager失败  <br />
+属于严重问题, 默认的配置的确存在SPOF. 建议结合ZK配置RM的HA. <br /> 新RM从状态存储区读取应用程序的状态, 重启应用程序.
+
+### 3.4 Shuffle
+1. 何为Shuffle ? <br />
+> mapper完成之后, map的输出结果`partion`, `sort`(按key排序), `溢出到磁盘`最终输入到reducer的过程.
+2. Shuffle 过程解读:
+> 1. partion, 将数据按照reducer进行分区;
+> 2. sort, 数据按key排序;
+> 3. combiner, 对排序后的输出进行combiner;
+> 4. map将以上过程后的输出存放在环形内存缓冲区(每个map1个, 默认100MB). 如果达到阈值(每次达到阈值,都会新建一个spill文件), 将开始溢出到溢出文件(磁盘); 如果在写磁盘过程中该缓冲区满, 则map被阻塞, 直到写磁盘完成; 在map完成之前, 会对溢出文件进行合并, 得到一个``已分区已排序``的输出文件. <br />
+> 5. NM的后台线程将该输出文件按分区发送给对应的reducer.
