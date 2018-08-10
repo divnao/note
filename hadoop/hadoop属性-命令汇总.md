@@ -17,6 +17,7 @@
 | mapred job -history mapred_job_history_file|   mapred_job_history_file | 指定mapred作业的历史记录文件查看对应作业的历史记录 |
 | hadoop fs -getmerge part_dir part_one| part_dir, part_one | 将reducer的输出文件合并为一个文件`part_one`, `part_one`是所有reducer输出文件的存放目录 |
 | mapred job -logs task_or_job_id | task_id或job_id | 查看任务日志 |
+| hdfs getconf -confKey prop_name | prop_name | 查看属性值, 也支持查看MR等其他模块的属性 |
 
 ## 2. 属性
 
@@ -71,6 +72,12 @@
 |  mapreduce.reduce.speculation  | true, false | reduce端推测执行, 默认true |
 | yarn.app.mapreduce.am.job.speculator.class | 完整类名 | 推测执行策略, DefaultSpeculator或LegacyTaskRuntimeEstimator |
 | mapreduce.task.output.dir | dir_path | task的工作目录, 可以理解为临时目录.也可通过FileOutputFormat.getWorkOuputPath()获取|
+| mapreduce.input.fileinputformat.split.minsize | int | 最小切片大小, 字节数 ,默认为0 |
+| mapreduce.input.fileinputformat.split.maxsize | int | 最大切片大小, 字节数 , 默认Long.MAX_VALUE |
+| dfs.blocksize | int | HDFS块大小 , 字节数, 默认134217728, 注意: 该值必须是checksum的倍数 |
+| mapreduce.input.inputformat.input.dir.recursive | true, false | 输入路径中存在子目录, 则递归处理; 默认false |
+| mapreduce.input.fileinputformat.inputdir |输入文件路径 | 逗号分割的路径 |
+| mapreduce.input.pathfilter.class | PathFilter的完整类名 | 输入文件的路径过滤器 |
 
 
 ## 2.3 YARN

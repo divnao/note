@@ -1,4 +1,4 @@
-# MapReduce
+# MR
 mapreduce作业在yarn上的端口: 8088
 
 ** 书籍推荐<<MapReduce数据密集型文本处理>> **
@@ -49,9 +49,15 @@ NM超过10分钟未向RM发送心跳信息, 则RM会将其从自己的节点池�
 > mapper完成之后, map的输出结果`partion`, `sort`(按key排序), combiner, `溢出到磁盘`,  copy, merge最终输入到reducer的过程.
 2. Shuffle流程:
 
-   ![](assets/shuffle阶段流程.png)
+   ![](assets/Shuffle流程图.png)
 
     					(this image comes from Hadoop: The Definitive Guide)
+
+   如果上图不明白, 下图来的更清晰:
+
+   ![](assets/shuffle详细流程.png)
+
+   ​					(Image comes from: https://www.codetd.com/article/2671477)
 
 3. Shuffle 流程解读
 
@@ -61,8 +67,63 @@ NM超过10分钟未向RM发送心跳信息, 则RM会将其从自己的节点池�
 > 4. ** spill ** , map将以上过程后的输出存放在环形内存缓冲区(<u>每个map1个, 默认100MB</u>). 如果达到阈值(<u>每次达到阈值,都会新建一个spill文件</u>), 将开始溢出到溢出文件(磁盘); 如果在写磁盘过程中该缓冲区满, 则map被阻塞, 直到写磁盘完成; 在map完成之前, 会对溢出文件进行合并, 得到一个``已分区已排序``的输出文件. (<u>此过程可配置`压缩`</u>) ;
 > 5. ** copy ** , 单个NM的后台线程将该输出文件按`分区` , 单个reducer维护的复制线程将map分区后的内容`拷贝`到reducer所在节点.(<u>map完成后告知输出文件信息给MRAppMaster, reducer的从MRAppMaster处获取map的信息</u>).
 > 6. ** merge ** , reducer完成拷贝后, 需要对多个map的输出文件进行合并, 把最后一次的合并直接输入(<u>最后一次合并不写磁盘</u>)到reduce函数. 
->   <u>至此, shuffle完成!</u>
+>     <u>至此, shuffle完成!</u>
 
 ### 3.5  推测执行
 
 运行速度较慢的map或者reduce, hadoop会为它们创建一个相同的任务作为备份任务. 这便是推测执行.  最终结果取先完成的那个任务, 未完成的任务被kill. (<u>reduce的推测执行往往由于需要重新从mapper获取数据导致增大网络负载. 通常并不推荐使用reduce端的推测执行</u>)
+
+## 4. MR数据类型与格式
+
+### 4.1 输入分片
+
+1. 何为输入分片?
+
+   > 一个输入分片就是由单个map来处理的数据块.每个map, 一次只处理一个分片, 每个分片被划分为若干记录, 每个记录是一个键值对, map依次处理一个个记录. (分片并不包含数据本身, 分片也不是输入文件被物理切分, 而是一组偏移量, 是数据的引用).
+
+2. 分片的实现   
+
+      | 类名        | 方法         | 备注                   |
+      | ----------- | ------------ | ---------------------- |
+      | InputFormat | getSplits(); | 逻辑切分输入文件`成片`, 并将分片信息发送到MRAppMaster, MRAppMaster根据分片信息调度map, map通过InputFormat的createRecordReader()获取到分片的键值对. |
+      | InputFormat | createRecordReader() | 返回一个该分片上的RecordReader, 用来循环读取键值对 |
+      | InputSplit  | getLength();    | 获取分片的字节数(<u>分片大小用来排序, 优先处理大分片,MR的优化措施.</u>); |
+      | InputSplit  | getLocations(); | 获取分片所在的主机列表. |
+
+3. split大小计算法则(前提是文件支持切分)
+
+      maxSize = `mapreduce.input.fileinputformat.split.maxsize`, 默认: Long.MAX_VALUE
+
+      minSize = `mapreduce.input.fileinputformat.split.minsize`, 默认:0
+
+      blockSize = dfs.blocksize, 默认128MB
+
+      ```
+      computeSplitSize(blockSize, minSize, maxSize) {
+      	return Math.max(minSize, Math.min(maxSize, blockSize));
+      }
+      ```
+       `因此, 默认配置下: minSize < blockSize < maxSize` 
+
+4. split切片信息元数据`ArrayList<FileSplit(extends InputSplit)>`---> 在JobSubmitter中计算, FileSplit中封装了file路径, host信息, 文件起始位置, 偏移长度等.
+
+      ```
+      hdfs://host_name:port/path_of_file:0 + offset(splitSize),
+      hdfs://host_name:port/path_of_file:offset*1 + offset(splitSize),
+      hdfs://host_name:port/path_of_file:offset*2 + offset(splitSize),
+      ......
+      ```
+
+      同时, 也可以看出, 一个切片只能是一个文件或者一个文件的一部分, 不可能出现一个切片来自多个文件. 当然, 多个文件归档成一个大文件或使用CombineFileInputFormat除外 *^-^*.  CombineFileInputFormat专为大量小文件打包合并到一个分片而生.
+
+5.  InputFormat 体系
+
+      ![](assets/文件输入格式.png)
+
+      ​					(this image comes from Hadoop: The Definitive Guide)
+
+6. 当遇到整个文件不需要被切分的场景, 由单个map单独处理.
+
+      方法1:  设置`mapreduce.input.fileinputformat.split.minsize`为Long.MAX_VALUE;
+
+      方法2:  使用FileInputFormat具体子类, 重写isSplitable(), 返回false.
