@@ -23,6 +23,7 @@
 ## 2.1 HDFS
 | 属性名称 | 属性值 | 备注 |
 | :------:|:------ | :------: |
+| io.file.buffer.size | int | |
 | dfs.replication | integer | 块的副本数量，默认为3 |
 | fs.defaultFS | hdfs://localhost:9000  | 文件系统 |
 | dfs.permissions.enabled | true, false |  启用文件系统权限控制 |
@@ -61,7 +62,15 @@
 | mapreduce.map.combine.minspills | int | 单个map完成后的溢出文件的数量如果超过这个值, 会再次调用combiner, 默认为3. |
 | mareduce.shuffle.max.threads | int | 单个NM管理的map输出文件`分区` 的线程数量; 配置为0时, 为当前节点core数量的2倍 |
 | mapreduce.reduce.shuffle.parallelcopies | int | reducer拷贝map输出文件的线程数量, 默认为5 |
+| mapreduce.reduce.shuffle.maxfetchfailures | int | 在声明失败之前, reducer获取一个map输出所花的最大时间 |
+| mapreduce.reduce.shuffle.input.buffer.percent | float | 在shuffle复制阶段, 分配给map输出缓冲区的内存占堆内存的百分比 默认0.70 |
+| mapreduce.reduce.shuffle.merge.percent | float | map输出缓冲区使用比例, 达到此阈值则启动merge和spill到磁盘, 默认0.66 |
+| mapreduce.reduce.merge.inmem.threshold | int | 启动merge和spill到磁盘的map输出数; 默认1000; 设置为0表示merge和spill由上一个属性控制 |
 | mapreduce.task.io.sort.factor | int | reducer合并map的输出文件, 该属性表示完成合并后的文件数量, 默认为10, 设置为100 |
+| mapreduce.map.speculation | true, false | map端推测执行 , 默认true |
+|  mapreduce.reduce.speculation  | true, false | reduce端推测执行, 默认true |
+| yarn.app.mapreduce.am.job.speculator.class | 完整类名 | 推测执行策略, DefaultSpeculator或LegacyTaskRuntimeEstimator |
+| mapreduce.task.output.dir | dir_path | task的工作目录, 可以理解为临时目录.也可通过FileOutputFormat.getWorkOuputPath()获取|
 
 
 ## 2.3 YARN

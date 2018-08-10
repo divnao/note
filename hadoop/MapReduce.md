@@ -26,9 +26,12 @@ JobClient.runJob(conf2);
 
 ### 3.2 MR的工作机制
 
-![](assets/MR流程图.png)
+![this image comes from `[Hadoop: The Definitive Guide]](assets/MR流程图.png)
+
+​					 	(this image comes from Hadoop: The Definitive Guide)
 
 ### 3.3 作业失败
+
 1. 应用失败. <br />
     MR的程序编码, 资源加载存在异常,错误; 应用的MRAppMaster管理该作业的黑名单, 任务失败超过3次的NM将减少任务分配. 注意: 并不是RM管理该黑名单.
 
@@ -43,12 +46,14 @@ NM超过10分钟未向RM发送心跳信息, 则RM会将其从自己的节点池�
 
 ### 3.4 Shuffle
 1. 何为Shuffle ? <br />
-> mapper完成之后, map的输出结果`partion`, `sort`(按key排序), `溢出到磁盘`最终输入到reducer的过程.
+> mapper完成之后, map的输出结果`partion`, `sort`(按key排序), combiner, `溢出到磁盘`,  copy, merge最终输入到reducer的过程.
 2. Shuffle流程:
 
    ![](assets/shuffle阶段流程.png)
 
-3. Shuffle 过程解读
+    					(this image comes from Hadoop: The Definitive Guide)
+
+3. Shuffle 流程解读
 
 > 1. ** partion ** , 将数据按照reducer进行分区;
 > 2. ** sort**, 分区内的数据按key排序;
@@ -56,8 +61,8 @@ NM超过10分钟未向RM发送心跳信息, 则RM会将其从自己的节点池�
 > 4. ** spill ** , map将以上过程后的输出存放在环形内存缓冲区(<u>每个map1个, 默认100MB</u>). 如果达到阈值(<u>每次达到阈值,都会新建一个spill文件</u>), 将开始溢出到溢出文件(磁盘); 如果在写磁盘过程中该缓冲区满, 则map被阻塞, 直到写磁盘完成; 在map完成之前, 会对溢出文件进行合并, 得到一个``已分区已排序``的输出文件. (<u>此过程可配置`压缩`</u>) ;
 > 5. ** copy ** , 单个NM的后台线程将该输出文件按`分区` , 单个reducer维护的复制线程将map分区后的内容`拷贝`到reducer所在节点.(<u>map完成后告知输出文件信息给MRAppMaster, reducer的从MRAppMaster处获取map的信息</u>).
 > 6. ** merge ** , reducer完成拷贝后, 需要对多个map的输出文件进行合并, 把最后一次的合并直接输入(<u>最后一次合并不写磁盘</u>)到reduce函数. 
-<u>shuffle完成!</u>
+>   <u>至此, shuffle完成!</u>
 
-### 3.5 shuffle调优
+### 3.5  推测执行
 
-调优原则: 为shuffle提供更多内存, 减少map,reduce数据占用内存.
+运行速度较慢的map或者reduce, hadoop会为它们创建一个相同的任务作为备份任务. 这便是推测执行.  最终结果取先完成的那个任务, 未完成的任务被kill. (<u>reduce的推测执行往往由于需要重新从mapper获取数据导致增大网络负载. 通常并不推荐使用reduce端的推测执行</u>)
