@@ -28,7 +28,7 @@ JobClient.runJob(conf2);
 
 ### 3.3 作业失败
 1. 应用失败. <br />
-  MR的程序编码, 资源加载存在异常,错误; 应用的MRAppMaster管理该作业的黑名单, 任务失败超过3次的NM将减少任务分配. 注意: 并不是RM管理该黑名单.
+    MR的程序编码, 资源加载存在异常,错误; 应用的MRAppMaster管理该作业的黑名单, 任务失败超过3次的NM将减少任务分配. 注意: 并不是RM管理该黑名单.
 
 2. MRAppMaster作业失败  <br />
 MRAppMaster失败后, RM在新的Container中新建一个master实例, Task在向失败的master请求无果后,会自动向RM请求新的master地址;
@@ -42,9 +42,15 @@ NM超过10分钟未向RM发送心跳信息, 则RM会将其从自己的节点池�
 ### 3.4 Shuffle
 1. 何为Shuffle ? <br />
 > mapper完成之后, map的输出结果`partion`, `sort`(按key排序), `溢出到磁盘`最终输入到reducer的过程.
-2. Shuffle 过程解读:
-> 1. partion, 将数据按照reducer进行分区;
-> 2. sort, 数据按key排序;
-> 3. combiner, 对排序后的输出进行combiner;
-> 4. map将以上过程后的输出存放在环形内存缓冲区(每个map1个, 默认100MB). 如果达到阈值(每次达到阈值,都会新建一个spill文件), 将开始溢出到溢出文件(磁盘); 如果在写磁盘过程中该缓冲区满, 则map被阻塞, 直到写磁盘完成; 在map完成之前, 会对溢出文件进行合并, 得到一个``已分区已排序``的输出文件. <br />
-> 5. NM的后台线程将该输出文件按分区发送给对应的reducer.
+2. Shuffle 过程解读
+> 1. ** partion ** , 将数据按照reducer进行分区;
+> 2. ** sort**, 分区内的数据按key排序;
+> 3. ** combiner ** , 对排序后的输出进行combiner;
+> 4. ** spill ** , map将以上过程后的输出存放在环形内存缓冲区(<u>每个map1个, 默认100MB</u>). 如果达到阈值(<u>每次达到阈值,都会新建一个spill文件</u>), 将开始溢出到溢出文件(磁盘); 如果在写磁盘过程中该缓冲区满, 则map被阻塞, 直到写磁盘完成; 在map完成之前, 会对溢出文件进行合并, 得到一个``已分区已排序``的输出文件. (<u>此过程可配置`压缩`</u>) <br />
+> 5. ** copy ** , 单个NM的后台线程将该输出文件按`分区` , 单个reducer维护的复制线程将map分区后的内容`拷贝`到reducer所在节点.(<u>map完成后告知输出文件信息给MRAppMaster, reducer的从MRAppMaster处获取map的信息</u>).
+> 6. ** merge ** , reducer完成拷贝后, 需要对多个map的输出文件进行合并, 把最后一次的合并直接输入(<u>最后一次合并不写磁盘</u>)到reduce函数. <br />
+<u>shuffle完成!</u>
+
+### 3.5 shuffle调优
+
+调优原则: 为shuffle提供更多内存, 减少map,reduce数据占用内存.

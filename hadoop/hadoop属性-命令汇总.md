@@ -22,7 +22,7 @@
 
 ## 2.1 HDFS
 | 属性名称 | 属性值 | 备注 |
-| :------:|:------: | :------: |
+| :------:|:------ | :------: |
 | dfs.replication | integer | 块的副本数量，默认为3 |
 | fs.defaultFS | hdfs://localhost:9000  | 文件系统 |
 | dfs.permissions.enabled | true, false |  启用文件系统权限控制 |
@@ -34,7 +34,7 @@
 | 属性名称 | 属性值 | 备注 |
 | :------:|:------: | :------: |
 | mapreduce.output.fileoutputformat.compress| true, false | mapreduce的输出使用压缩 |
-| mapreduce.output.fileoutputformat.compress.codec | 压缩格式完整类名， 如：<br />`org.apache.hadoop.io.compress.SnappyCodec` | mapreduce输出文件的压缩格式(也可以在应用中设置，FileIOutputFormat.setOutputCompressor())|
+| mapreduce.output.fileoutputformat.compress.codec | 压缩格式完整类名 | mapreduce输出文件的压缩格式(也可以在应用中设置，FileIOutputFormat.setOutputCompressor())|
 | mapreduce.output.fileoutputformat.compress.type | `RECORD`(默认)或`BLOCK`(更高效)或`NONE` | 设置压缩文件格式为`SequenceFile` |
 | mapreduce.map.output.compress | true, false | 设置map输出中间结果是使用压缩，使用快速压缩如: LZO、Snappy等，减少mapper传输到reducer的数据量可以获得``性能上的提升``。也可以： conf.setBoolean(Job.MAP_OUTPUT_COMPRESS,true_or_false); |
 | mapreduce.map.output.compress.codec | 压缩格式的完整类名 | map输出中间结果是使用压缩格式 。也可以:  conf.setClass(Job.MAP_OUTPUT_COMPRESS_CLASS, 完整类名)|
@@ -56,9 +56,12 @@
 | mapreduce.am.max-attempts | int | MRAppMaster作业失败重试次数, 默认为2, 超过这个次数则作业失败. 此属性的`增加`受到上一个属性的`限制`, 要增加的话应该先改增加上一个属性 |
 | yarn.app.mapreduce.am.job.recovery.enable | true, false | RM重启失败的MRAppMaster时, 是否通过作业历史来恢复作业,使作业不必重头开始. 默认true |
 | mapreduce.job.maxtaskfailures.per.tracker | int | NM上运行失败的任务的次数阈值. 超过此值则NM被MRAppMaster拉黑, 默认为3 |
-| mapreduce.task.io.sort.mb | int | 每个map的环形内存缓冲区大小,用于存储map的输出, 默认100M |
+| mapreduce.task.io.sort.mb | int | 每个map的环形内存缓冲区大小,用于排序和存储map的输出, 默认100M |
 | mapreduce.map.sort.spill.percent | float | 环形内存缓冲区阈值, 一旦达到, map的输出内存将溢出到文件(磁盘), 默认0.8(或80%) |
-
+| mapreduce.map.combine.minspills | int | 单个map完成后的溢出文件的数量如果超过这个值, 会再次调用combiner, 默认为3. |
+| mareduce.shuffle.max.threads | int | 单个NM管理的map输出文件`分区` 的线程数量; 配置为0时, 为当前节点core数量的2倍 |
+| mapreduce.reduce.shuffle.parallelcopies | int | reducer拷贝map输出文件的线程数量, 默认为5 |
+| mapreduce.task.io.sort.factor | int | reducer合并map的输出文件, 该属性表示完成合并后的文件数量, 默认为10, 设置为100 |
 
 
 ## 2.3 YARN
@@ -69,6 +72,8 @@
 | yarn.resourcemanager.nm.liveness-monitor.expiry-interval-ms | int(毫秒) | NM超过此时间未向RM发送心跳, 将被RM移出, 默认600000(10分钟) |
 
 
+
 ## 指定配置文件启动
+
 `$ hadoop fs -conf /conf_file_path`
 参考<<Hadoop权威指南>> page148
