@@ -46,8 +46,13 @@ for(FileStatus f: fileSystem.globStatus(new Path("/*/ubuntu/*"))){
 
 
 ## 8. HDFS 读文件剖析
-1. `HDFS Client`的调用`DistributedFileSystem.open(file_path)`, 通过RPC(远程过程调用)与`NameNode`交互并返回file_path的在DataNode的块信息给`HDFS Client`，得到一个DataInputStream字节流对象;
+0. HDFS读流程图
 
+   ![](assets/HDFS读.png)
+
+						 	(this image comes from Hadoop: The Definitive Guide)
+
+1. `HDFS Client`的调用`DistributedFileSystem.open(file_path)`, 通过RPC(远程过程调用)与`NameNode`交互并返回file_path的在DataNode的块信息给`HDFS Client`，得到一个DataInputStream字节流对象;
 2. 该对象FSDataInputStream <br />
 ```[fsDataInputStream对象的
 in-->
@@ -71,11 +76,15 @@ in-->
 
 ## 9. HDFS写文件剖析
 
+0. 流程图:
+
+   ![](assets/HDFS写.png)
+
+						 	(this image comes from Hadoop: The Definitive Guide)
+
 1. HDFS Client调用 `DistributedFileSystem.create()`方法，与`NameNode`创建一个RPC调用，NN检查文件是否存在及当前请求用户是否拥有权限新建文件。检查失败抛出IO异常; 检查通过则 `NN`返回一个`FSDataOutputStream`对象， 辅助与NN、DN之间的通信;
 2. `FSDataOutputStream`对象将文件拆分成数据包， 放入`dataQueue`(其实是一个LinkedList);
-
 3. `FSDataOutputStream`对象中的`dataStreamer`负责挑选出合适的`DN`组成DataNode pipeline, 通知`NN`分配数据块， 然后`dataStreamer`将数据包流式传输到datanode pipeline 的`第一个DataNode`。
-
 4. 当第一DataNode完成数据包存储，该DataNode将数据包发送到第二个DataNode， 依次类推。DistributedFileSystem对象维护的`ackQueue`(也是一个LinkedList)在收到所有datanode的确认信息后将删除。最后调用流的close()[隐含调用hflush()方法]， 将剩余的数据包写入datanode pipeline.
 
 注1: DataNode写入数据包期间故障。
@@ -177,11 +186,17 @@ Hadoop为存储[key, value]形式的二进制文件而设计的一种数据结�
 
 5.1.3 CompressionType
 
-|CompressionType | 字段组成|
-|:-----|:-----:|:-----:|:-----:|:-----:|
+![](assets/NONE_RECORD.png)
+
+![](assets/BLOCK.png)
+
+​					(this two images come from Hadoop: The Definitive Guide)
+
+|CompressionType | 字段组成||||||||
+|:-----|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
 |NONE| HEADER|RECORD|RECORD|SYNC|RECORD|RECORD|SYNC|...|
-|RECORD| 同上 |
-|BLOCK| HEADER | SYNC|BLOCK |SYNC|BLOCK|...|
+|RECORD| 同上 ||||||||
+|BLOCK| HEADER | SYNC|BLOCK |SYNC|BLOCK||...||
 
 * CompressionType为`NONE`, `RECODE字段`详解:
 |record_length|key_length|key|value|

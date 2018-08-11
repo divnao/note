@@ -78,6 +78,9 @@
 | mapreduce.input.inputformat.input.dir.recursive | true, false | 输入路径中存在子目录, 则递归处理; 默认false |
 | mapreduce.input.fileinputformat.inputdir |输入文件路径 | 逗号分割的路径 |
 | mapreduce.input.pathfilter.class | PathFilter的完整类名 | 输入文件的路径过滤器 |
+| mapreduce.input.keyvaluelinerecordreader.key.value.separator | char | 为KeyValueTextInputFormat指定文件中每行的key与value之间的分隔符 |
+| mapreduce.input.lineinputformat.linespermap | int | 使用NLineInputFormat, 每次传给map的行数, 默认为1 |
+| mapreduce.output.textoutputformat.separator | char | 为TextOutputFormat指定分隔符 |
 
 
 ## 2.3 YARN

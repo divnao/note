@@ -57,7 +57,7 @@ NM超过10分钟未向RM发送心跳信息, 则RM会将其从自己的节点池�
 
    ![](assets/shuffle详细流程.png)
 
-   ​					(Image comes from: https://www.codetd.com/article/2671477)
+   ​					[Image comes from](https://www.codetd.com/article/2671477)
 
 3. Shuffle 流程解读
 
@@ -73,13 +73,13 @@ NM超过10分钟未向RM发送心跳信息, 则RM会将其从自己的节点池�
 
 运行速度较慢的map或者reduce, hadoop会为它们创建一个相同的任务作为备份任务. 这便是推测执行.  最终结果取先完成的那个任务, 未完成的任务被kill. (<u>reduce的推测执行往往由于需要重新从mapper获取数据导致增大网络负载. 通常并不推荐使用reduce端的推测执行</u>)
 
-## 4. MR数据类型与格式
+## 4. MR数据输入输出的类型与格式
 
 ### 4.1 输入分片
 
 1. 何为输入分片?
 
-   > 一个输入分片就是由单个map来处理的数据块.每个map, 一次只处理一个分片, 每个分片被划分为若干记录, 每个记录是一个键值对, map依次处理一个个记录. (分片并不包含数据本身, 分片也不是输入文件被物理切分, 而是一组偏移量, 是数据的引用).
+   > 一个输入分片就是由单个map来处理的数据块.每个map, 一次只处理一个分片, 每个分片被划分为若干记录(分片是按字节''切割''为分片), 每个记录是一个键值对, map依次处理一个个记录. (分片并不包含数据本身, 分片也不是输入文件被物理切分, 而是一组偏移量, 是数据的引用).
 
 2. 分片的实现   
 
@@ -116,14 +116,64 @@ NM超过10分钟未向RM发送心跳信息, 则RM会将其从自己的节点池�
 
       同时, 也可以看出, 一个切片只能是一个文件或者一个文件的一部分, 不可能出现一个切片来自多个文件. 当然, 多个文件归档成一个大文件或使用CombineFileInputFormat除外 *^-^*.  CombineFileInputFormat专为大量小文件打包合并到一个分片而生.
 
-5.  InputFormat 体系
+      
 
-      ![](assets/文件输入格式.png)
+### 4.2 InputFormat 体系
 
-      ​					(this image comes from Hadoop: The Definitive Guide)
+1. InputFormat体系图
 
-6. 当遇到整个文件不需要被切分的场景, 由单个map单独处理.
+![](assets/文件输入格式-1533957970100.png)
 
-      方法1:  设置`mapreduce.input.fileinputformat.split.minsize`为Long.MAX_VALUE;
+​					(this image comes from Hadoop: The Definitive Guide)
 
-      方法2:  使用FileInputFormat具体子类, 重写isSplitable(), 返回false.
+2. 当遇到整个文件不需要被切分的场景, 由单个map单独处理.
+
+   方法1:  设置`mapreduce.input.fileinputformat.split.minsize`为Long.MAX_VALUE;
+
+   方法2:  使用FileInputFormat具体子类, 重写isSplitable(), 返回false.
+
+3. 输入格式
+
+> `TextInputFormat`, 默认的InputFormat. 每行记录作为一个key(LongWritable)-value(Text), value是该行的文本内容(不包括\r\n), key是该行文本相对与全文的字节偏移量;
+>
+> `KeyVaueTextInputFormat`, 为每个record指定key,value的分隔符; 与`TextInputFormat`不同之处在于key不再是字符的偏移量; [The difference between TextInputFormat and KeyValueTextInputFormat](https://community.hortonworks.com/questions/170106/what-are-the-most-common-inputformats-in-hadoop.html)
+>
+> `NLineInputFormat`, key(LongWritable)-value(Text)的构造和TextInputFormat相同.  key是文件行的字节偏移量, value是文件内容;  它能使得每个mapper收到固定行数的输入;
+>
+> `SequenceFileInputFormat`, 用于处理二进制文件, 支持读取map文件和seq文件,  支持压缩,切分, 只需要保证map的keyIn,valueIn和文件中的匹配即可;
+>
+> `DBInputFormat`, 用于使用JDBC从关系型数据库读取数据; 对于非关系型数据库, 如:HBase, 可以使用其自带的TableInputFormat. 
+
+4. 同时处理相同内容, 但不同格式的数据
+
+> MultipltInputs, 单独为每条路径指定InputFormat和Mapper.
+
+### 4.3 OutPutFormat 体系
+
+1. OutputFormat体系图
+
+![](assets/OutPut.png)
+
+​				(this image comes from Hadoop: The Definitive Guide)
+
+2.  输出格式
+
+   > `TextOutputFormat`, 默认输出格式, 把每条记录写成文本行, 其key和value可以时任意类型, 并默认按`\t`分隔;
+   >
+   > `SequenceFileOutputFormat`, 用于处理二进制文件, 输出为顺序文件, 支持压缩;
+   >
+   > `MapFileOutputFormat`, 将map文件作为输出, MapFile中必须添加键且已经排好序;
+   >
+   > `LazyOutputFormat`, 延迟输出, 至少要有一条记录才创建输出文件, 通过job.setOutputFormatClass()设置; 而其他的几种输出格式不关心reducer输出是否有记录, 均会创建输出文件;
+   >
+   > `DBOutputFormat`, 用于使用JDBC向关系型数据库输出数据; 对于非关系型数据库, 如:HBase, 可以使用其自带的TableOutputFormat. 
+
+
+
+3.  多个输出
+
+   > `MultipleOutputFormat`, DIY reducer/mapper(没有reducer)的输出文件名, 文件数量. (输出文件命名格式建议: file_name-m/r-nnnnn , nnnnn指的是块id, 这样可以避免文件重复; 另外, 笔记有意思的是, 其write()方法支持在文件放在任意深度的目录中).
+
+
+
+注: `DBInputFormat`和 `DBOutputFormat`适用于加载/输出 少量数据集从/到 数据库; 当数据量较大时, 应将上述二者分别结合`MultipltInputs`或`MultiplOutputs`一同使用; 当数据量贼大时, 考虑上`Sqoop`吧.
