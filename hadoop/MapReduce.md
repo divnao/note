@@ -158,22 +158,74 @@ NM超过10分钟未向RM发送心跳信息, 则RM会将其从自己的节点池�
 
 2.  输出格式
 
-   > `TextOutputFormat`, 默认输出格式, 把每条记录写成文本行, 其key和value可以时任意类型, 并默认按`\t`分隔;
-   >
-   > `SequenceFileOutputFormat`, 用于处理二进制文件, 输出为顺序文件, 支持压缩;
-   >
-   > `MapFileOutputFormat`, 将map文件作为输出, MapFile中必须添加键且已经排好序;
-   >
-   > `LazyOutputFormat`, 延迟输出, 至少要有一条记录才创建输出文件, 通过job.setOutputFormatClass()设置; 而其他的几种输出格式不关心reducer输出是否有记录, 均会创建输出文件;
-   >
-   > `DBOutputFormat`, 用于使用JDBC向关系型数据库输出数据; 对于非关系型数据库, 如:HBase, 可以使用其自带的TableOutputFormat. 
-
-
+> `TextOutputFormat`, 默认输出格式, 把每条记录写成文本行, 其key和value可以时任意类型, 并默认按`\t`分隔;
+> `SequenceFileOutputFormat`, 用于处理二进制文件, 输出为顺序文件, 支持压缩;
+>
+> `MapFileOutputFormat`, 将map文件作为输出, MapFile中必须添加键且已经排好序;
+>
+> `LazyOutputFormat`, 延迟输出, 至少要有一条记录才创建输出文件, 通过job.setOutputFormatClass()设置; 而其他的几种输出格式不关心reducer输出是否有记录, 均会创建输出文件;
+>
+> `DBOutputFormat`, 用于使用JDBC向关系型数据库输出数据; 对于非关系型数据库, 如:HBase, 可以使用其自带的TableOutputFormat. 
 
 3.  多个输出
 
    > `MultipleOutputFormat`, DIY reducer/mapper(没有reducer)的输出文件名, 文件数量. (输出文件命名格式建议: file_name-m/r-nnnnn , nnnnn指的是块id, 这样可以避免文件重复; 另外, 笔记有意思的是, 其write()方法支持在文件放在任意深度的目录中).
 
-
-
 注: `DBInputFormat`和 `DBOutputFormat`适用于加载/输出 少量数据集从/到 数据库; 当数据量较大时, 应将上述二者分别结合`MultipltInputs`或`MultiplOutputs`一同使用; 当数据量贼大时, 考虑上`Sqoop`吧.
+
+## 5. 排序
+
+1. key排序的优先级
+   1. 属性: `mapreduce.job.output.key.comparator.class`指定, 默认为`RawComparator`;
+   2. key必须是WritableComparable的子类;
+   3. 使用RawComparator将字节流反序列化为对象, 在调用WritableComparable.compareTo()进行笔记.
+
+2. 全局排序
+
+   1. 背景: 上述排序只在单个reducer输出文件内部有序, 除非只有一个reducer, 否则无法实现全局排序, 但又丧失了并行计算的优势.
+
+   2. 优化思路: 对partioner进行范围划分, 但要考虑如何避免数据倾斜问题. 使用`InputSampler`采样器, 然后将Partiitioner设置为: `TotalOrderPartitioner`即可. 如下: (<u>采样比例0.1, 最大样本10000, 分区数10(注意分区数和reducer数不要冲突). 三者任意满足其一, 采样停止.</u>)
+
+       ```
+       // sampler setting...
+       job.setPartitioner(TotalOrderPartitioner.class);
+       samper = new InputSampler.RandomSampler(0.1, 10000, 10);  
+       InputSampler.wirtePartitionFIle(job, sampler);
+       partitionFile = TotalOrderPartitioner.getPartitionFile(conf);
+       URI partitionUri = new URI(partitionFIle);
+       job.addCacheFile(partitionUri);  // add to distributed cache.
+       
+       // job setting...
+       
+       // submit job....
+       ```
+
+
+## 6. 连接(未完待续...)
+
+1. map端连接: 连接在mapper中执行
+2. reduce端连接: 连接在reducer中执行(更常用)
+
+## 7. hadoop jar 命令其他选项
+
+|    选项    |         参数          |                             作用                             |
+| :--------: | :-------------------: | :----------------------------------------------------------: |
+|  --files   | 逗号分隔的URI文件路径 | 分发需要用到的文件到集群每个节点的分布式缓存, 以备将来需要复制到这些节点. <br /> <==> <br /> Job.addCacheFile() 和 Job.setCacheFiles() |
+| --archives |       归档文件        | 解档归档文件到任务节点的分布式缓存,jar,zip,gz等<br /> <==> <br /> Job.addArchiveFile() 和 Job.setArchiveFiles() |
+| --libjars  |    任务所需的类库     | 分发任务所需的jar到mapper和reducer节点的类路径, 也在分布式缓存中, 逗号分隔多个jar.<br /> <==> <br /> Job.addFileToClassPath() 和 Job.addArchiveToClassPath() <br /> 前者适合分发jar, 且不会被解档. 后者适合分发归档文件. |
+
+ 
+
+## N. 问题
+
+1. MR默认不能递归读取目录中的文件.出现`org.apache.hadoop.ipc.RemoteException(java.io.FileNotFoundException): Path is not a file: /huh/ncdc/1901` 异常.
+
+   解决1: 提交作业临时设置递归: `conf.set("mapreduce.input.fileinputformat.input.dir.recursive", "true");`
+
+   解决2: 集群永久设置`[mapred-site.xml]`, 添加:
+    ```
+        <property>
+            <name>mapreduce.input.fileinputformat.input.dir.recursive</name>
+            <value>true</value>
+        </property>  
+    ```

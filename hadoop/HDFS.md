@@ -181,7 +181,7 @@ Hadoop为存储[key, value]形式的二进制文件而设计的一种数据结�
 * 支持压缩 (CompressionType.NONE, RECORD, BLOCK);
 * 每一行都是一个key value对;
 * 可以设置同步点 (sync point), 支持从指定position的下一个`同步点`读取;
-* 小文件的容器, 提供HDFS和MR的效率;
+* 小文件的容器, 提高HDFS和MR的效率;
 * Key和Value可以是任意类型Writable或者是自定义Writable.
 
 5.1.3 CompressionType

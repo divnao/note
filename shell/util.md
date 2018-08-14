@@ -58,3 +58,38 @@ free
 vmstat
 dmidecode
 `/proc/meminfo 文件`
+
+## 5. pbcopy & pbpaste
+
+0. 作用: 命令行快速剪切,粘贴
+
+1. 安装xclip, xsel(linux不支持pbcopy, pbpaste)
+
+```
+$ sudo apt-get install xclip
+$ sudo apt-get install xsel
+```
+
+2. 修改`~/.bashrc`, 添加如下:
+
+```
+// xclip
+alias pbcopy='xclip -selection clipboard'
+alias pbpaste='xclip selection clipboard -o'
+
+// xsel
+alias pbcopy='xsel --clipboard --input'
+alias pbpaste='xsel --clipboard --output'
+```
+3. 生效
+
+`$source ~/.baashrc`
+
+4. usage:
+   1. `$ echo "Hello" | pbcopy`
+
+      `$pbpaste`  ==> Hello
+
+   2. `pbcopy < xx.txt`
+
+      `pbpaste` ==> 文件内容

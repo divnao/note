@@ -18,6 +18,7 @@
 | hadoop fs -getmerge part_dir part_one| part_dir, part_one | 将reducer的输出文件合并为一个文件`part_one`, `part_one`是所有reducer输出文件的存放目录 |
 | mapred job -logs task_or_job_id | task_id或job_id | 查看任务日志 |
 | hdfs getconf -confKey prop_name | prop_name | 查看属性值, 也支持查看MR等其他模块的属性 |
+| hdfs dfs -text /test/part-m-00000 "\|" head -2| "\|" 表示管道 | 查看hdfs文件前2行|
 
 ## 2. 属性
 
@@ -75,12 +76,13 @@
 | mapreduce.input.fileinputformat.split.minsize | int | 最小切片大小, 字节数 ,默认为0 |
 | mapreduce.input.fileinputformat.split.maxsize | int | 最大切片大小, 字节数 , 默认Long.MAX_VALUE |
 | dfs.blocksize | int | HDFS块大小 , 字节数, 默认134217728, 注意: 该值必须是checksum的倍数 |
-| mapreduce.input.inputformat.input.dir.recursive | true, false | 输入路径中存在子目录, 则递归处理; 默认false |
+| mapreduce.input.fileinputformat.input.dir.recursive | true, false | 输入路径中存在子目录, 则递归处理; 默认false |
 | mapreduce.input.fileinputformat.inputdir |输入文件路径 | 逗号分割的路径 |
 | mapreduce.input.pathfilter.class | PathFilter的完整类名 | 输入文件的路径过滤器 |
 | mapreduce.input.keyvaluelinerecordreader.key.value.separator | char | 为KeyValueTextInputFormat指定文件中每行的key与value之间的分隔符 |
 | mapreduce.input.lineinputformat.linespermap | int | 使用NLineInputFormat, 每次传给map的行数, 默认为1 |
 | mapreduce.output.textoutputformat.separator | char | 为TextOutputFormat指定分隔符 |
+| mapreduce.job.output.key.comparator.class | class | 默认RowComparator, key的排序类 |
 
 
 ## 2.3 YARN
@@ -89,6 +91,7 @@
 | yarn.resourcemanager.max-completed-applicatons | int | yarn在内存中保存的已完成作业的数量(无关作业历史记录) |
 | yarn.log-aggregation-enable | false(默认), true | Yarn日志聚合服务, 将日志归档于HDFS |
 | yarn.resourcemanager.nm.liveness-monitor.expiry-interval-ms | int(毫秒) | NM超过此时间未向RM发送心跳, 将被RM移出, 默认600000(10分钟) |
+| yarn.nodemanager.localizer.cache.target-size-mb | int(MB) | NodeManager的分布式缓存大小, 默认10240MB |
 
 
 
