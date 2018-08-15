@@ -93,3 +93,17 @@ alias pbpaste='xsel --clipboard --output'
    2. `pbcopy < xx.txt`
 
       `pbpaste` ==> 文件内容
+
+## 6.  进程查看
+
+1. jps, 查看jvm进程, 属于jdk自带工具;
+
+2. ps,  **  report a snapshot of the current processes **
+
+   > BSD风格: `$ ps aux`, 列出所有进程(a,x)及用户(u);
+   >
+   > Unix风格: `$ ps -elf`, 列出所有进程(-e,) -待办完整格式;
+   >
+   > 一种错误的格式: `$ ps -aux`, 表示列出用户x的所有进程, 没有则报错.
+
+3. 
