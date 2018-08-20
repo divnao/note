@@ -18,7 +18,13 @@
 | hadoop fs -getmerge part_dir part_one| part_dir, part_one | 将reducer的输出文件合并为一个文件`part_one`, `part_one`是所有reducer输出文件的存放目录 |
 | mapred job -logs task_or_job_id | task_id或job_id | 查看任务日志 |
 | hdfs getconf -confKey prop_name | prop_name | 查看属性值, 也支持查看MR等其他模块的属性 |
+| hadoop namenode -format  | -format | 格式化HDFS文件系统，　注意以hdfs用户操作　|
+| hadoop dfsadmin -printTopology | -printTopology  | 查看机架　|
 | hdfs dfs -text /test/part-m-00000 "\|" head -2| "\|" 表示管道 | 查看hdfs文件前2行|
+| hadoop getconf -namenode | -namenode <br /> -secordaryNameNodes | 查看运行namenode节点的host_name <br /> 查看运行secordaryNameNode节点的host_name |
+|hadoop fs -mkdir /user/userhome|/user/userhome| 为使用hdfs的用户创建｀home｀目录　|
+|hadoop fs -chown username:username /user/userhome| /user/userhome | 设置目录的拥有者　|
+|hdfs dfsadmin -setSpaceQuota 1t /user/userhome| -setSpaceQuota, /user/userhome | 为/user/user/home 设置容量为１TB |
 
 ## 2. 属性
 
@@ -32,6 +38,9 @@
 | dfs.webhdfs.enabled | true, false | 启用WebHdfs, 默认true |
 | dfs.bytes-per-checksum | 字节数 | 设置每隔多少字节，计算一次checksum. 默认:`512`  |
 | io.seqfile.compress.blocksize | 字节数 | 默认1MB. 块压缩(BLOCK), 每个压缩"BLOCK"的字节大小上限 |
+| dfs.namenode.name.dir | 　存放HDFS元数据的目 | 一般配置逗号分隔的多个磁盘路径以达到备份的目的　|
+| dfs.datanode.data.dir | 存放DN数据块的目录　| 若有多个磁盘，　建议为每个磁盘使用`noatime`(当读取文件时，文件的最近访问时间并不更新) 挂载一个目录，　以避免数据块的跨磁盘读写导致的性能问题|
+| dfs.namenode.checkpointdir | 逗号分隔的目录　|　secondNameNode 存放检查点的目录列表，每个目录都是一份检查点文件的副本　|
 
 ## 2.2 MapReduce
 | 属性名称 | 属性值 | 备注 |
