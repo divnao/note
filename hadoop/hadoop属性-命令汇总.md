@@ -41,6 +41,11 @@
 | dfs.namenode.name.dir | 　存放HDFS元数据的目 | 一般配置逗号分隔的多个磁盘路径以达到备份的目的　|
 | dfs.datanode.data.dir | 存放DN数据块的目录　| 若有多个磁盘，　建议为每个磁盘使用`noatime`(当读取文件时，文件的最近访问时间并不更新) 挂载一个目录，　以避免数据块的跨磁盘读写导致的性能问题|
 | dfs.namenode.checkpointdir | 逗号分隔的目录　|　secondNameNode 存放检查点的目录列表，每个目录都是一份检查点文件的副本　|
+|  dfs.hosts | 节点列表　| 允许作为DataNode加入集群的机器列表　|
+|  dfs.hosts.exclude | 节点列表　| 与上一条属性相反　|
+|  io.file.buffer.size | int (字节) |　用来复制IO操作的 缓存区，　默认4096,建议设置为：128KB(131072字节)　|
+|  dfs.datanode.du.reserved | int(字节) |　保留下来给其他非HDFS使用的磁盘空间　|
+
 
 ## 2.2 MapReduce
 | 属性名称 | 属性值 | 备注 |
@@ -101,6 +106,9 @@
 | yarn.log-aggregation-enable | false(默认), true | Yarn日志聚合服务, 将日志归档于HDFS |
 | yarn.resourcemanager.nm.liveness-monitor.expiry-interval-ms | int(毫秒) | NM超过此时间未向RM发送心跳, 将被RM移出, 默认600000(10分钟) |
 | yarn.nodemanager.localizer.cache.target-size-mb | int(MB) | NodeManager的分布式缓存大小, 默认10240MB |
+| yarn.nodemanager.local-dirs | 逗号分隔的目录 | Yarn容器执行map任务中间输出的零时文件存放目录，　保证足够的存储空间且建议分散到所有本地磁盘　|
+| yarn.resourcemanager.nodes.include-path | 节点列表　| 允许作为节点管理器的节点列表　|
+|  yarn.resourcemanager.nodes.exclude-path | 节点列表　| 与上一个属性相反　|
 
 
 

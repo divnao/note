@@ -3,7 +3,21 @@ title = "2018-07-27"
 weight = 100
 +++
 
-# SQL 培训
+# SQL 基础
+
+## 0. 常用语句
+
+1. 建库时指定字符集
+  `mysql> CREATE DATABASE IF NOT EXISTS db_name DEFAULT CHARSET utf8 COLLATE utf8_general_ci;`
+
+2. 修改数据库的字符集
+
+  `mysql> ALTER DATABASE db_name DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci
+
+3. 通过子查询复制表
+  `mysql> create table db_name.new_tb_name as select  *  from old_db_name.old_tb_name;`
+  需要注意的是：这样生成的表没有原表的主键和索引，也不能将原表中的default value也一同迁移过来，慎用．
+
 ## 1. where 条件查询
 *  `like`: 使用LIKE做模糊匹配 <br />
 * `%`： 匹配一个或多个字符 <br />

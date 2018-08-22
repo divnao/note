@@ -48,12 +48,15 @@ for(FileStatus f: fileSystem.globStatus(new Path("/*/ubuntu/*"))){
 ## 8. HDFS 读文件剖析
 0. HDFS读流程图
 
-   ![](assets/HDFS读.png)
+    ![](assets/HDFS读.png)
 
-						 	(this image comes from Hadoop: The Definitive Guide)
+    					 	(this image comes from Hadoop: The Definitive Guide)
 
-1. `HDFS Client`的调用`DistributedFileSystem.open(file_path)`, 通过RPC(远程过程调用)与`NameNode`交互并返回file_path的在DataNode的块信息给`HDFS Client`，得到一个DataInputStream字节流对象;
+1. `HDFS Client`的调用`DistributedFileSystem.open(file_path)`, 通过RPC(远程过程调用)与`NameNode`交互并返回file_path的在DataNode的块信息给`HDFS Client`，(客户端和DataNode之间是`TCP连接`, 该连接由客户端发起）．得到一个DataInputStream字节流对象;
+
 2. 该对象FSDataInputStream <br />
+
+   ![](assets/Screenshot from 2018-08-21 00-17-33.png)
 ```[fsDataInputStream对象的
 in-->
     locatedBlocks(所有块)|lastLocatedBlock(最后一个块)-->
@@ -74,17 +77,24 @@ in-->
 
 注3: 这种设计的优点在于数据并不经过NameNode,减少其负担。其次时块的元数据保存在NN的内存中，因而读取更加高效。
 
+注４: 短回路本地读(short-cricuit local read)，即: 客户端和数据块位于同一节点,这种读取方式直接从磁盘读取，　绕过网络传输，能使诸如HBase的性能更高．启用"短回路本地度"　==> `dfs.client.read.shortcircuit`设置为true.
+
 ## 9. HDFS写文件剖析
 
 0. 流程图:
 
-   ![](assets/HDFS写.png)
+    ![](assets/HDFS写.png)
 
-						 	(this image comes from Hadoop: The Definitive Guide)
+    					 	(this image comes from Hadoop: The Definitive Guide)
 
 1. HDFS Client调用 `DistributedFileSystem.create()`方法，与`NameNode`创建一个RPC调用，NN检查文件是否存在及当前请求用户是否拥有权限新建文件。检查失败抛出IO异常; 检查通过则 `NN`返回一个`FSDataOutputStream`对象， 辅助与NN、DN之间的通信;
+
 2. `FSDataOutputStream`对象将文件拆分成数据包， 放入`dataQueue`(其实是一个LinkedList);
+
+   
+
 3. `FSDataOutputStream`对象中的`dataStreamer`负责挑选出合适的`DN`组成DataNode pipeline, 通知`NN`分配数据块， 然后`dataStreamer`将数据包流式传输到datanode pipeline 的`第一个DataNode`。
+
 4. 当第一DataNode完成数据包存储，该DataNode将数据包发送到第二个DataNode， 依次类推。DistributedFileSystem对象维护的`ackQueue`(也是一个LinkedList)在收到所有datanode的确认信息后将删除。最后调用流的close()[隐含调用hflush()方法]， 将剩余的数据包写入datanode pipeline.
 
 注1: DataNode写入数据包期间故障。
@@ -265,3 +275,46 @@ public static void readSeqFile(String filePath, Configuration conf, FileSystem f
 ### 5.2 MapFile
 5.2.1 何为MapFile ?
 5.2.2 MapFile的特点
+
+## 6. 回收站
+
+hadoop 文件系统中，通过`shell`和`Trash.moveToTrash()`方法删除的文件并未被真正删除，而是转移到回收站(一个特定的文件夹)中保留一段时间，超过该时间(core-site.xml 中fs.trash.interval属性来控制回收站文件保存时间)才被永久删除．
+
+1. 回收站位置: 当回收站被启用，在每个用户`home`目录下，都有一个`.Trash`目录即: 回收站．
+2. 文件恢复: 将想要恢复的文件从`.Trash`目录中移出即可．
+3. 文件删除: 对于HDFS，会自动删除回收站内的达到时长的文件，对于其他文件系统，需要`$ hadoop fs`-expunge 手动删除或`Trash.expunge()来删除`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

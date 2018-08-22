@@ -4,6 +4,7 @@
 * 快速查找类 -->  `Ctrl+Shift+Alt+N`
 * getter/setter  ---> `Alt + insert`
 * 多行编辑  -->  `Alt + shift` + 鼠标选择
+* implement method  --> Alt + shift + p
 
 ## jetbrains 全系破解
 
