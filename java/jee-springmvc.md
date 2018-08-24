@@ -235,12 +235,203 @@ public class HomeController {
    </html>
    ```
 
-2. 创建RegisterController．
-  ［RegisterController.java］
+2. 创建RegisterController类．
 
-  ```
+     后端获取前端参数
+
+     1)． 方式一，使用`servlet-api`;
+
+     [RegisterController.java]
+
+     ```
+     @Controller
+     public class RegisterController {
+         @RequestMapping(value = "/toReg")
+         public String toRegisterPage() {
+             return "reg";
+         }
+         @RequestMapping(value = "/doReg")
+         public String doRegister(HttpServletRequest request) {
+             String userName = request.getParameter("username");
+             String password = request.getParameter("password");
+             System.out.println(userName + ": " + password);
+             return "index";
+         }
+     }
+     ```
+
+     2)．方式二，使用`@RequestParam`注解;
+
+     ［RegisterController.java]
+
+     ```
+     @Controller
+     public class RegisterController {
+         @RequestMapping(value = "/toReg")
+         public String toRegisterPage() {
+             return "reg";
+         }
+         @RequestMapping(value = "/doReg")
+         public String doRegister(@RequestParam("username") String username, @RequestParam("password") String password) {
+             System.out.println(username + ": " + password);
+             return "index";
+         }
+     }
+     ```
+
+### 5.10 后端向前端页面返回数据
+
+   
+
+     1. 方式一，`Ｍodel`, 将数据绑定到Model中，　然后在jsp在解析
+    
+        ［Register.java］
+    
+        ```
+            @RequestMapping(value = "/selectOne")
+            public String selectOne(Model model, @RequestParam("uid") int uid) {
+                System.out.println("收到请求uid: " + uid);
+                String username = "张三";
+                model.addAttribute("myusername", username);
+                return "selectOne";
+            }
+        
+        ```
+    
+        [selectOne.jsp]
+    
+        ```
+        <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+        <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+        
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <title>Register</title>
+        </head>
+        <body>
+            username: <c:out value="${myusername}" />
+        </body>
+        </html>
+
+后端向页面传递值: Model封装数据的范围request范围，只有请求转发才能获取.
+
+![](assets/Screenshot from 2018-08-23 08-49-45.png)
+
+
+### 5.11 forward转发与redirect重定向
+
+* forward, 
+
+> 1.  在服务器端完成，且只能在同一个应用转发;
+> 2.  客户端不参与，浏览器地址不改变，如果点击刷新，即发起重新一次请求；
+> 3.  可以共享参数．
+
+* redirect,
+
+>1. 客户端参与，地址栏改变；
+>2. 可以重定向到任意url地址；
+>3. 不能共享变量．
+>4. 通常用于一些写操作，删除操作．
+
+* 用例  
+
+  ![](assets/Screenshot from 2018-08-24 10-32-51.png)
+
   
-  ```
 
-  
+## 6.　SSM整合
 
+### 6.1 准备工作
+
+参考第5节
+
+### 6.2 依赖
+
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.huh</groupId>
+    <artifactId>ssm</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>war</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+        </dependency>
+
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.17</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mchange</groupId>
+            <artifactId>c3p0</artifactId>
+            <version>0.9.5.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis</artifactId>
+            <version>3.2.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context-support</artifactId>
+            <version>5.0.8.RELEASE</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
+            <version>5.0.8.RELEASE</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>1.8.10</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis-spring</artifactId>
+            <version>1.3.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>jstl</groupId>
+            <artifactId>jstl</artifactId>
+            <version>1.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+            <version>5.0.8.RELEASE</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+</project>
+```
+
+### 6.3 
