@@ -5,6 +5,8 @@
 * getter/setter  ---> `Alt + insert`
 * 多行编辑  -->  `Alt + shift` + 鼠标选择
 * implement method  --> Alt + shift + p
+* 输入文件名查找文件--> Ctrl+Shift+R
+* 全局查找文件内容　--> Ctrl + H
 
 ## 2. jetbrains 全系破解
 

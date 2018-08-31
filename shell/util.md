@@ -106,4 +106,22 @@ alias pbpaste='xsel --clipboard --output'
    >
    > 一种错误的格式: `$ ps -aux`, 表示列出用户x的所有进程, 没有则报错.
 
-3. 
+
+## 7. scp
+
+```
+拷贝远程主机的文件(在A服务器上操作，将B服务器上/home/lk/目录下所有的文件全部复制到本地的/root目录下)
+$scp -r root@43.224.34.73:/home/lk /root
+```
+
+```
+拷贝本地文件到远程主机：
+`$scp -r ncdc/ luxinxin@10.211.114.198:~/Downloads/`
+```
+
+## 8. netstat
+
+
+
+## 9. tcpdump
+
