@@ -284,35 +284,89 @@ hadoop 文件系统中，通过`shell`和`Trash.moveToTrash()`方法删除的文
 2. 文件恢复: 将想要恢复的文件从`.Trash`目录中移出即可．
 3. 文件删除: 对于HDFS，会自动删除回收站内的达到时长的文件，对于其他文件系统，需要`$ hadoop fs`-expunge 手动删除或`Trash.expunge()来删除`
 
+## 7. NameNode目录结构
+![](assets/Screenshot from 2018-09-01 08-59-45.png)
 
+## 8. {dfs.namenode.name.dir}/current/VERSION文件
 
+![](assets/Screenshot from 2018-09-01 09-04-52.png)
 
+## ９．{dfs.datanode.data.dir}/current/VERSION
 
+![](assets/Screenshot from 2018-09-01 09-21-56.png)
 
+## 10. SecondNameNode创建检查点的步骤
 
+```
+1. SecondNameNode请求NameNode停止使用当前edits文件(edits_inprogress_xxx)，并创建新的edits文件；
+2. SecondNameNode使用`HTTP GET`获取之前停止使用的edits文件和fsimage文件;
+3. SecondNameNode将fsimage文件载入内存，逐一执行edits中的事物操作，合并到一个新的fsimage;
+4. SecondNameNode将新fsimage通过`HTTP POST`发送给NameNode,NameNode将其命名为fsimage_xxx.ckpt;
+5. NameNode将.ckpt文件重命名为fsimage.这样便获得了一个更小的edits文件和最新的fsimage文件．
+```
 
+![](assets/Screenshot from 2018-09-03 09-18-47.png)
 
+注: 
+> 1. 处于安全模式(HDFS只读)的NN创建检查点: `hdfs dfsadmin -saveNameSpace`
 
+触发检查点的条件(二者任意满足其一):
 
+> 1. `dfs.namenode.checkpoint.period`, 单位为秒, 默认１小时．SNN将会创建检查点;
+> 2. `dfs.namenode.checkpoint.txns`, 从上一次检查点开始的事物数量，默认100万个事物，达到该值时SNN将创建检查点;(检查该事物数量由: `dfs.namenode.checkpoint.check.period设置，单位为秒，默认１分钟`)
 
+## 11. 安全模式
 
+1). 为何会进入安全模式？
 
+NN启动，fsimage文件被载入内存，并执行edits文件中的操作．这个过程HDFS处于安全模式(HDFS处于只读状态)．==> 对于一个刚格式化的HDFS，并无任何块即edits，因此刚格式化的HDFS不会进入安全模式．
 
+2). 安全模式常用命令
 
+查看是否处于安全模式:
+`$ hdfs dfsadmin -safemode get`
+![](assets/Screenshot from 2018-09-03 10-40-22.png)
 
+进入安全模式:
+`$ hdfs dfsadmin -safemode enter`
 
+执行某个操作时，暂时退出安全模式:
+`$ hdfs dfsadmin -safemode wait`
 
+离开安全模式:
+`$ hdfs dfsadmin -safemode leave`
 
+## 12. 均衡器(balancer)
 
+1. 两个定义
 
+   > 1). DN使用率:  该节点已使用的空间与总空间的比率．
+   >
+   > 2). 集群使用率:　集群中已使用的空间与集群总空间的比率．
 
+2. 何为均衡？
 
+   均衡：　DN使用率和集群使用率接近程度．越接近则越均衡．
 
+3. 何为均衡器？
 
+   一个Hadoop守护进程，在保证块存放策略的情况下，将块从忙碌的DN移动到空闲的DN，以保持DN使用率和集群使用率非常接近(或者不超过指定的阈值，默认`10%`)
 
+4. 启停均衡器
 
+   `$ start-balancer.sh`
 
+   `$ stop-balancer.sh`
 
+   可指定阈值(百分比格式): `$start-balancer.sh -threshold`
+
+5. 注意
+
+   ** 任意时刻，一个集群只能有一个均衡器处于运行状态 **
+
+   ** 服役新节点，数据块并不自动做均衡操作，用户需要手动执行均衡处理　**
+
+6. xx
 
 
 

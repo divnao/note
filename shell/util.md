@@ -125,3 +125,5 @@ $scp -r root@43.224.34.73:/home/lk /root
 
 ## 9. tcpdump
 
+
+

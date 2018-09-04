@@ -3,7 +3,7 @@
 
 ## 1. 常用命令 (支持管道)
 | 命令 | 参数 | 备注 |
-| :------|:------: | :------: |
+| :------|:------- | :------- |
 | hdfs fsck /path -files -blocks | -files, -blocks | 块状态信息 |
 | hadoop fs  -help | -help|查看所有命令帮助信息|
 | hadoop fs -copyFromLocal source_file target_dir| text1.txt, hdfs://localhost:9000/user/dir | 上传文件到hdfs|
@@ -25,12 +25,27 @@
 |hadoop fs -mkdir /user/userhome|/user/userhome| 为使用hdfs的用户创建｀home｀目录　|
 |hadoop fs -chown username:username /user/userhome| /user/userhome | 设置目录的拥有者　|
 |hdfs dfsadmin -setSpaceQuota 1t /user/userhome| -setSpaceQuota, /user/userhome | 为/user/user/home 设置容量为１TB |
+| hdfs dfsadmin -saveNamespace | -saveNamespace | 处于安全模式的NN创建检查点，将内存中的映像生成一个新的fsimage文件，并重置edits文件　|
+| hdfs dfsadmin -safemode get |  -safemode get | 查看HDFS是否处于安全模式　|
+|  hdfs dfsadmin -safemode enter | | 进入安全模式|
+|  hdfs dfsadmin -safemode wait ||执行某个操作前，暂时退出安全模式．常用于升级和维护集群前执行　|
+|　 hdfs dfsadmin -safemode leave ||　离开安全模式　|
+| hdfs dfsadmin -report | -report | 查看文件系统的统计信息(包括DN)|
+| hdfs dfsadmin -refreshNodes | -refreshNodes | 更新Datanode节点列表，常用于服役新DataNode后更新允许连接到NN的节点列表 |
+| hdfs dfsadmin -upgradeProgress | -upgradeProgress | 查看升级HDFS的进度或者强制升级 |
+| hdfs dfsadmin -setQuota | -setQuota | 设置目录配额．当前目录以及子目录中一共能保存多少个文件以及目录．用于阻止创建大量小文件，保护NN内存． |
+| hdfs dfsadmin -clrQuota | -clrQuota | 清理指定目录的配额 |
+| hdfs dfsadmin -setSpaceQuota | -setSpaceQuota | 设置目录的空间配额，限制存储在目录树的所有文件总规模．常用于为不同用户设置存储空间． |
+| hdfs dfsadmin -clrSpaceQuota | -clrSpaceQuota | 清理指定目录的空间配额．/ |
+| hdfs fsck /path | /path | 指定文件或目录，从NN获取当前文件或目录的健康状况统计信息．缺失的block, 过多过少的block．并不与DN直接交互． |
+| hdfs fsck /file/path -files -blocks -racks | /file/path -files -blocks -racks | 查找文件的所有block． |
+
 
 ## 2. 属性
 
 ## 2.1 HDFS
 | 属性名称 | 属性值 | 备注 |
-| :------:|:------ | :------: |
+| :-------|:------ | :------- |
 | io.file.buffer.size | int | |
 | dfs.replication | integer | 块的副本数量，默认为3 |
 | fs.defaultFS | hdfs://localhost:9000  | 文件系统 |
@@ -45,7 +60,15 @@
 |  dfs.hosts.exclude | 节点列表　| 与上一条属性相反　|
 |  io.file.buffer.size | int (字节) |　用来复制IO操作的 缓存区，　默认4096,建议设置为：128KB(131072字节)　|
 |  dfs.datanode.du.reserved | int(字节) |　保留下来给其他非HDFS使用的磁盘空间　|
-
+| 　dfs.namenode.checkpoint.period | int(秒)　| 默认3600秒，SNN创建一次检查点|
+|  dfs.namenode.checkpoint.txns | int | 默认100万，从上一次检查点至今的事物数量达到100万，SNN创建一次检查点　|
+| 　dfs.namenode.checkpoint.check.period |int (秒) |　默认60秒，检查从上一次检查点至今的事物数量,结合上一个属性一起使用 |
+| dfs.datanode.numblocks | int | 默认64, 当current目录达到该值时，DataNode会在current目录下新创建一个子目录subdir_number，用于保存新的数据块和元数据。|
+|  dfs.namenode.replication.min | int | 默认为1, 成功执行写操作所需要创建的最小副本数(亦称: 最小副本级别)　|
+| dfs.namenode.safemode.threshold-pct |float| 在NN退出安全模式前，系统中满足最小副本级别的块的比例．　满足则退出安全模式，否则不退出安全模式．设置为０则无法进入安全模式，设置为大于１则永久无法退出安全模式(亦称：　最小副本条件)　|
+| dfs.namenode.safemode.extension |int(毫秒) | 默认30000, 在满足了最小副本条件，继续保持安全模式的时间．对于小集群，可以设为０． |
+| dfs.datanode.scan.period.hours |int(小时) | 默认504小时，DN维护的`块扫描器`扫描当前DN上的块的间隔时间，检查块是否有校验和错误．发现错误则通知NN进行修复． |
+| dfs.datanode.balance.bandwidthPerSec [hdfs-site.xml] |int(字节) | 默认1048576(1M), `均衡器`使用的带宽阈值，默认1M/s. |
 
 ## 2.2 MapReduce
 | 属性名称 | 属性值 | 备注 |
