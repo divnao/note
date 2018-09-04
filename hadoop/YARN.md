@@ -26,3 +26,18 @@
 [faid-scheduler.xml, 文件位置`find .`]  ---- 参考《Hadoop权威指南第四版》page89
 
 值得注意的是， Fair调度器提供了`可插拔`的资源`抢占`功能。
+
+## 4. 其他进程
+
+1. 启停`JobHistoryServer`
+
+   `$ mr-jobhistory-daemon.sh  start historyserver`
+
+   `$ mr-jobhistory-daemon.sh  stop historyserver`
+
+2. 启停`WebAppProxyServer`
+
+   `$ yarn-daemon.sh start proxyserver`
+
+   `$ yarn-daemon.sh stop proxyserver`
+

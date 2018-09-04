@@ -69,6 +69,9 @@
 | dfs.namenode.safemode.extension |int(毫秒) | 默认30000, 在满足了最小副本条件，继续保持安全模式的时间．对于小集群，可以设为０． |
 | dfs.datanode.scan.period.hours |int(小时) | 默认504小时，DN维护的`块扫描器`扫描当前DN上的块的间隔时间，检查块是否有校验和错误．发现错误则通知NN进行修复． |
 | dfs.datanode.balance.bandwidthPerSec [hdfs-site.xml] |int(字节) | 默认1048576(1M), `均衡器`使用的带宽阈值，默认1M/s. |
+| dfs.permissions.enabled |boolean | 默认true, 是否进行用户权限检查． |
+| hadoop.http.staticuser.user |string | 默认dr.who, 登录web界面的用户． |
+| fs.trash.interval |int(分钟) | 被删除的文件在`.Trash`中的保留时间． |
 
 ## 2.2 MapReduce
 | 属性名称 | 属性值 | 备注 |
