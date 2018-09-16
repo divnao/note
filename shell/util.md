@@ -144,3 +144,21 @@ $scp -r root@43.224.34.73:/home/lk /root
 `$ ufw allow proto tcp from 10.0.1.0/10 to 本机ip port 25`  :允许自10.0.1.0/10的tcp封包访问本机的25端口。
 
 `$ ufw delete allow/deny 20`  :删除以前定义的"允许/拒绝访问20端口"的规则
+
+## 11. Ubuntu测网速工具
+
+`$ speedtest-cli`
+
+## 12. ubuntu设置代理上网
+
+1. 确定一个代理地址: `http://proxy.cmcc:8080`
+
+2. 修改.bashrc文件，或直接进入"设置"--> "Network" --> "Network Proxy"添加代理即可．(二者选其一，建议后者).
+
+   如下:
+
+   ![Screenshot from 2018-09-16 18-51-58](assets/Screenshot from 2018-09-16 18-51-58.png)
+
+   或者
+
+   ![Screenshot from 2018-09-16 18-53-28](assets/Screenshot from 2018-09-16 18-53-28.png)

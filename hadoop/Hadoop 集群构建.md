@@ -99,3 +99,32 @@ ECC RAM向每个字节添加一个额外的位，称为奇偶校验位。奇偶�
 
 usage: `http://localhost:50070/conf`
 
+## 3.5 问题
+
+```
+-ls: java.net.UnknownHostException:huh-hadoop-ha-cluster
+Usage: hadoop fs [generic options] -ls [-d] [-h] [-R] [<path> ...]
+```
+
+解决：[hdfs-site.xml]添加如下配置，重启集群
+
+```
+<property> 
+<name>dfs.client.failover.proxy.provider.huh-hadoop-ha-cluster</name>
+<value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value>
+</property>
+```
+
+## 3.6 升级hadoop
+
+原理: 修改新版本的元数据信息指向，指向旧版本的元数据．
+
+如下：　升级hadoop1.2.1到2.7.2
+
+![](assets/Screenshot from 2018-09-10 15-55-51.png)
+
+注意： 不可以使用格式化命令．直接停止旧集群，启动新版本集群即可．使用以下命令启动`NN`.然后查看web页面，等待升级完成．
+
+![](assets/Screenshot from 2018-09-10 15-57-34.png)
+
+![](assets/Screenshot from 2018-09-10 16-01-11.png)
