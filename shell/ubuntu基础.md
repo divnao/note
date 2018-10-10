@@ -128,21 +128,13 @@ $scp -r root@43.224.34.73:/home/lk /root
 ## 10. ufw
 
 `$ sudo apt-get install ufw`
-
 `$ sudo ufw status`
-
 `$ sudo ufw enable`
-
 `$ sudo ufw disable`
-
 `$ ufw default allow/deny` :外来访问默认允许/拒绝
-
 `$ufw allow/deny 20`：允许/拒绝 访问20端口,20后可跟/tcp或/udp，表示tcp或udp封包。
-
 `$ ufw allow/deny servicename`  ：ufw从/etc/services中找到对应service的端口，进行过滤。
-
 `$ ufw allow proto tcp from 10.0.1.0/10 to 本机ip port 25`  :允许自10.0.1.0/10的tcp封包访问本机的25端口。
-
 `$ ufw delete allow/deny 20`  :删除以前定义的"允许/拒绝访问20端口"的规则
 
 ## 11. Ubuntu测网速工具
@@ -162,3 +154,42 @@ $scp -r root@43.224.34.73:/home/lk /root
    或者
 
    ![Screenshot from 2018-09-16 18-53-28](assets/Screenshot from 2018-09-16 18-53-28.png)
+
+## 13. umask
+
+介绍：
+
+> 作用:  **umask命令**用来设置限制新建文件权限的掩码(八进制); 当新文件被创建时，其最初的权限由文件创建掩码决定;
+>
+> 原理: 用户每次注册进入系统时，umask命令都被执行， 并自动设置掩码mode来限制新文件的权限;
+>
+> 使用: 用户可以通过再次执行umask命令来改变默认值，新的权限将会把旧的覆盖掉;
+>
+> 默认值: `0022`
+
+usage1：
+
+>`$umask u=, g=w, o=rwx` , 使用此命令创建掩码，使得组用户的写权限，其他用户的读、写和执行权限都被取消．
+
+usage2：
+
+![](assets/Screenshot from 2018-10-04 11-43-05.png)
+
+usage3:
+
+> 若要经常修改其值，可以将其写进环境变量中: `~/.bashrc`或`/etc/profile`或`~/.bash_profile`
+
+## 14. useradd和adduser
+
+1. CentOS下`useradd`与`adduser`是没有区别的都是在创建用户，在home下自动创建目录，没有设置密码，需要使用passwd命令修改密码;
+
+   
+
+2. 在Ubuntu下useradd与adduser有所不同
+
+   1)、`useradd`在使用该命令创建用户是不会在/home下自动创建与用户名同名的用户目录，而且不会自动选择shell版本，也没有设置密码，那么这个用户是不能登录的，需要使用passwd命令修改密码;
+
+   2)、`adduser`在使用该命令创建用户是会在/home下自动创建与用户名同名的用户目录，系统shell版本，会在创建时会提示输入密码，更加友好。
+
+## 15. userdel和deluser
+
