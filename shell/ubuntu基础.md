@@ -121,8 +121,6 @@ $scp -r root@43.224.34.73:/home/lk /root
 
 ### 8. netstat
 
-
-
 ### 9. tcpdump
 
 ### 10. ufw
@@ -201,12 +199,24 @@ tee命令，用于从标准输入设备读取数据，并将其内容`输出成`
 	`$ tee -a -i test1`
 	`$ tee test2 test3`  --> 同时将输入数据写入到test2和test3两个文件．
 
+### 17. 定时任务
+
+### 18. md5sum -c filename
+
+### scandir
+
+### lftp sftp
+
+### lcd
+
+
+
 
 ## 2. 网络
 
-### 1. 防火墙
+### 1. [防火墙](https://mp.weixin.qq.com/s?__biz=MzAxODI5ODMwOA==&mid=2666542958&idx=1&sn=6f27ec1d1d75e293e6bf51adc0e10bed&chksm=80dcf3c5b7ab7ad3c700a443a61315b274eceb96a6334d74ebbbd4c8f54d74b90efe82cbb0c8&scene=0&pass_ticket=J6f%2BGfhOIcZqtWBTogoWebhi4JrvdsEgUGsPxKuh2VsOf2Yp0nyiHVXF5M1GDQOv#rd)
 
- (部分摘自微信公众号：LCTT  Linux爱好者)
+ (部分摘自微信公众号：LCTT， Linux爱好者)
 
 1. 概念: 防火墙是一组规则。当数据包进出受保护的网络区域时，进出内容（特别是关于其来源、目标和使用的协议等信息）会根据防火墙规则进行检测，以确定是否允许其通过.
 
@@ -254,7 +264,7 @@ tee命令，用于从标准输入设备读取数据，并将其内容`输出成`
 
    `$ firewall-cmd --reload`
 
-5. 案例－－书店书籍查询终端
+5. iptables案例－－书店书籍查询终端
    1). 需求：
    1. 允许终端登录到 BigMart.com 产品页面，允许查找商品特征、过道位置和库存水平;
    2. 允许终端进入 bigmart-data.com;
@@ -301,5 +311,5 @@ tee命令，用于从标准输入设备读取数据，并将其内容`输出成`
 
 ![](assets/Screenshot from 2018-10-12 20-15-10.png)
 
-
+防火墙未完待续．．．nftables,  ufw
 
